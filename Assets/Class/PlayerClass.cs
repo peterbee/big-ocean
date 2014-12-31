@@ -4,7 +4,6 @@ using Parse;
 
 public class PlayerClass : MonoBehaviour {
 
-	private bool dragging = false;
 	private GameObject target;
 	private float nextSave;
 
@@ -18,8 +17,6 @@ public class PlayerClass : MonoBehaviour {
 	public System.DateTime? updatedAt;
 
 	void Start () {
-		dragging = false;
-
 		if (isThisPlayer) {
 			LoadPlayer ();
 		}
@@ -100,15 +97,7 @@ public class PlayerClass : MonoBehaviour {
 			// note - raycast needs a surface to hit against 	
 			RaycastHit hit;
 			if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit)) {
-				if (Input.GetMouseButtonDown(0)/* && hit.collider.Equals (transform.collider)*/) {
-					OnTouchBegin(hit);
-				}
-				else if (dragging && Input.GetMouseButton(0)) {
-					OnTouchMove(hit);
-				}
-				else if (dragging && Input.GetMouseButtonUp(0)) {
-					OnTouchEnd(hit);
-				}
+				OnTouchMove(hit);
 			}
 
 			SavePlayer ();
@@ -129,28 +118,10 @@ public class PlayerClass : MonoBehaviour {
 		}
 	}
 	
-	void OnTouchBegin (RaycastHit hit) {
-		ClearHitPoints ();
-
-		dragging = true;
+	void OnTouchMove (RaycastHit hit) {
 		Enqueue (hit);
 	}
 	
-	void OnTouchMove (RaycastHit hit) {
-		if (dragging) {
-			Enqueue (hit);
-
-			// Only add first out-of-water point
-			if (hit.point.y > 0) {
-				dragging = false;
-			}
-		}
-	}
-	
-	void OnTouchEnd (RaycastHit hit) {
-		dragging = false;
-	}
-
 	public void SetTarget (Vector3 position) {
 		Destroy (target);
 		target = (GameObject)Instantiate (pathVertex);
@@ -208,13 +179,7 @@ public class PlayerClass : MonoBehaviour {
 	}
 
 	void FreeFall () {
-		ClearHitPoints ();
 		rigidbody.AddTorque (Vector3.right);
-	}
-
-	void ClearHitPoints() {
-		Destroy (target);
-		target = null;
 	}
 
 	/*public float speed;
