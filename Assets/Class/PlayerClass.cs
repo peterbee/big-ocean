@@ -1,32 +1,117 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Parse;
 
 public class PlayerClass : MonoBehaviour {
 
 	private bool dragging = false;
-	private Queue hitPoints = new Queue();
-	private int speed = 8;
+	private GameObject target;
+	private float nextSave;
 
+	private ParseObject parseObject;
+
+	public bool isThisPlayer = false;
 	public float maxForce = 10;
 	public GameObject pathVertex;
-	
+	public GameObject following;
+	public string playerId;
+	public System.DateTime? updatedAt;
+
 	void Start () {
 		dragging = false;
+
+		if (isThisPlayer) {
+			LoadPlayer ();
+		}
+	}
+
+	void LoadPlayer () {
+		string playerId = PlayerPrefs.GetString ("id");	
+		print ("Player Id " + playerId);
+
+		parseObject = new ParseObject ("Character");
+
+		/*if (playerId != null) {
+			parseObject.ObjectId = playerId;
+		}*/
+
+		/*if (playerId != null) {
+			print ("querying");
+			ParseQuery<ParseObject> query = ParseObject.GetQuery("Character");
+			query.GetAsync(query).ContinueWith(t =>
+			{
+				parseObject = t.Result;
+				print ("Parse Object " + parseObject);
+
+				if (parseObject == null) {
+					parseObject = new ParseObject ("Character");
+				}
+			});
+		} else {
+			print ("creating new");
+			parseObject = new ParseObject ("Character");
+		}*/
+	}
+
+	void SavePlayer () {
+		if (parseObject != null && Time.time > nextSave) {
+			nextSave += 5f;
+
+			parseObject["position_x"] = transform.position.x;
+			parseObject["position_y"] = transform.position.y;
+			parseObject["position_z"] = transform.position.z;
+			parseObject["target_x"] = 0;
+			parseObject["target_y"] = 0;
+			parseObject["target_z"] = 0;
+
+			if (target != null) {
+				parseObject["target_x"] = target.transform.position.x;
+				parseObject["target_y"] = target.transform.position.y;
+				parseObject["target_z"] = target.transform.position.z;
+			}
+
+			parseObject.SaveAsync().ContinueWith(task => 
+			{
+				if (task.IsCanceled)
+				{
+					// the save was cancelled.
+					print ("Task cancelled");
+				}
+				else if (task.IsFaulted)
+				{
+					foreach(var e in task.Exception.InnerExceptions) {
+						ParseException parseException = (ParseException) e;
+						Debug.Log("Error message " + parseException.Message);
+						Debug.Log("Error code: " + parseException.Code);
+					}
+				}
+				else
+				{
+					// the object was saved successfully.
+					print ("Saved " + parseObject.ObjectId);
+					playerId = parseObject.ObjectId;
+				}
+			});
+		}
 	}
 	
 	void Update () {
-		// note - raycast needs a surface to hit against 	
-		RaycastHit hit;
-		if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit)) {
-			if (Input.GetMouseButtonDown(0)/* && hit.collider.Equals (transform.collider)*/) {
-				OnTouchBegin(hit.point);
+		if (isThisPlayer) {
+			// note - raycast needs a surface to hit against 	
+			RaycastHit hit;
+			if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit)) {
+				if (Input.GetMouseButtonDown(0)/* && hit.collider.Equals (transform.collider)*/) {
+					OnTouchBegin(hit);
+				}
+				else if (dragging && Input.GetMouseButton(0)) {
+					OnTouchMove(hit);
+				}
+				else if (dragging && Input.GetMouseButtonUp(0)) {
+					OnTouchEnd(hit);
+				}
 			}
-			else if (dragging && Input.GetMouseButton(0)) {
-				OnTouchMove(hit.point);
-			}
-			else if (dragging && Input.GetMouseButtonUp(0)) {
-				OnTouchEnd(hit.point);
-			}
+
+			SavePlayer ();
 		}
 	}
 
@@ -44,56 +129,82 @@ public class PlayerClass : MonoBehaviour {
 		}
 	}
 	
-	void OnTouchBegin (Vector3 point) {
+	void OnTouchBegin (RaycastHit hit) {
 		ClearHitPoints ();
 
 		dragging = true;
+		Enqueue (hit);
 	}
 	
-	void OnTouchMove (Vector3 point) {
+	void OnTouchMove (RaycastHit hit) {
 		if (dragging) {
-			Enqueue (point);
+			Enqueue (hit);
 
 			// Only add first out-of-water point
-			if (point.y > 0) {
+			if (hit.point.y > 0) {
 				dragging = false;
 			}
 		}
 	}
 	
-	void OnTouchEnd (Vector3 point) {
+	void OnTouchEnd (RaycastHit hit) {
 		dragging = false;
 	}
-	
-	void Enqueue (Vector3 point) {
-		// TODO: connect path with a line or curve
-		GameObject marker = (GameObject)Instantiate(pathVertex);
-		marker.transform.position = new Vector3(point.x, point.y, transform.position.z);
 
-		hitPoints.Enqueue (marker);
+	public void SetTarget (Vector3 position) {
+		Destroy (target);
+		target = (GameObject)Instantiate (pathVertex);
+		target.transform.position = position;
+	}
+
+	void Enqueue (RaycastHit hit) {
+		GameObject marker = (GameObject)Instantiate(pathVertex);
+		marker.transform.position = new Vector3(hit.point.x, hit.point.y, transform.position.z);
+
+		Destroy (target);
+		target = marker;
 	}
 	
 	void Move () {
 		// move gameObject
-		if (hitPoints.Count > 0) {
-			// move gameObject along path
-			GameObject next = (GameObject) hitPoints.Peek ();
+		if (following != null) {
+			float distance = Vector3.Distance (following.transform.position, transform.position);
 
-			Quaternion newRotation = Quaternion.LookRotation (next.transform.position - transform.position);
-			transform.rotation = Quaternion.RotateTowards (transform.rotation, newRotation, Time.deltaTime * 40);
-			
-			Vector3 newForce = transform.forward * 30;
-			rigidbody.AddForce(newForce);
+			// if not too close, follow the leader
+			if (distance > 20) {
+				TurnTowards (following);
+			} else {
+				Divert ();
+			}
+			GoForward ();
+		} else if (target != null) {
+			// move gameObject towards target
+			TurnTowards (target);
+			GoForward ();
 
-			float distance = Vector3.Distance (next.transform.position, transform.position);
+			float distance = Vector3.Distance (target.transform.position, transform.position);
 			if (distance < 3) {
 				// Passed the next marker, remove it
-				hitPoints.Dequeue ();
-				Destroy (next);
+				Destroy (target);
+				target = null;
 			}
 		} else {
 			rigidbody.AddForce (transform.forward * 5);
 		}
+	}
+
+	void TurnTowards (GameObject other) {
+		Quaternion newRotation = Quaternion.LookRotation (other.transform.position - transform.position);
+		transform.rotation = Quaternion.RotateTowards (transform.rotation, newRotation, Time.deltaTime * 40);
+	}
+	
+	void Divert () {
+		transform.rotation = Quaternion.RotateTowards (transform.rotation, Quaternion.LookRotation (Vector3.up), Time.deltaTime * 40);
+	}
+	
+	void GoForward () {
+		Vector3 newForce = transform.forward * 30;
+		rigidbody.AddForce(newForce);
 	}
 
 	void FreeFall () {
@@ -102,9 +213,8 @@ public class PlayerClass : MonoBehaviour {
 	}
 
 	void ClearHitPoints() {
-		while (hitPoints.Count > 0) {
-			Destroy ((GameObject)hitPoints.Dequeue ());
-		}
+		Destroy (target);
+		target = null;
 	}
 
 	/*public float speed;
