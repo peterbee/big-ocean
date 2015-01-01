@@ -139,10 +139,13 @@ public class PlayerClass : MonoBehaviour {
 		// Shift back so 0,0 is bottom-left of viewport
 		vPos.x += 0.5f;
 		vPos.y += 0.5f;
-		
+
+		float newX = vPos.x * Camera.main.pixelWidth - 55;
+		float newY = vPos.y * Camera.main.pixelHeight - 20;
+
 		label.transform.position = new Vector3 (
-			vPos.x * Camera.main.pixelWidth,
-			vPos.y * Camera.main.pixelHeight,
+			newX < 55 ? 55 : newX,
+			newY < 20 ? 20 : newY,
 			0
 		);
 	}
