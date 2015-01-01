@@ -6,17 +6,25 @@ public class PlayerClass : MonoBehaviour {
 
 	private GameObject target;
 	private float nextSave;
+	private GameObject canvas;
+	private GameObject label;
 
 	private ParseObject parseObject;
 
 	public bool isThisPlayer = false;
 	public float maxForce = 10;
+	public GameObject labelPrefab;
 	public GameObject pathVertex;
 	public GameObject following;
 	public string playerId;
 	public System.DateTime? updatedAt;
 
 	void Start () {
+		canvas = GameObject.Find ("Canvas");
+		label = (GameObject) Instantiate(labelPrefab);
+		label.transform.SetParent (canvas.transform);
+		label.SetActive (false);
+
 		if (isThisPlayer) {
 			LoadPlayer ();
 		}
@@ -101,7 +109,52 @@ public class PlayerClass : MonoBehaviour {
 			}
 
 			SavePlayer ();
+		} else {
+			UpdateLabel ();
 		}
+	}
+
+	void UpdateLabel () {
+		// Move label at edge of screen
+		Vector3 vPos = Camera.main.WorldToViewportPoint(transform.position);
+		
+		// Shift so 0,0 is center of viewport
+		vPos.x -= 0.5f;
+		vPos.y -= 0.5f;
+		
+		if (Mathf.Abs(vPos.x / vPos.y) > 1 ) {
+			// x dimension has greater magnitude
+			label.SetActive (AffixToScreen (ref vPos.x, ref vPos.y));
+		} else {
+			// y dimension has greater magnitude
+			label.SetActive (AffixToScreen (ref vPos.y, ref vPos.x));
+		}
+		
+		// Shift back so 0,0 is bottom-left of viewport
+		vPos.x += 0.5f;
+		vPos.y += 0.5f;
+		
+		label.transform.position = new Vector3 (
+			vPos.x * Camera.main.pixelWidth,
+			vPos.y * Camera.main.pixelHeight,
+			0
+		);
+	}
+	
+	bool AffixToScreen (ref float larger, ref float smaller) {
+		// x dimension has greater magnitude
+		float scale = Mathf.Abs (larger / 0.5f);
+		smaller = smaller / scale;
+		
+		if (larger > 0.5) {
+			larger = 0.5f;
+		} else if (larger < -0.5)  {
+			larger = -0.5f;
+		} else {
+			return false;
+		}
+
+		return true;
 	}
 
 	void FixedUpdate () {

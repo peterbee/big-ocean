@@ -845,6 +845,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isThisPlayer: 0
   maxForce: 10
+  labelPrefab: {fileID: 132984, guid: 833bb85a8c1e243bd9146bd2b937c20c, type: 2}
   pathVertex: {fileID: 159570, guid: bab8ff9cb013243369ca30ea9c0049bc, type: 2}
   following: {fileID: 0}
   playerId: 
