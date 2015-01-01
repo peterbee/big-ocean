@@ -99,10 +99,16 @@ public class PlayerClass : MonoBehaviour {
 			});
 		}
 	}
+
+	public void SetActive (bool active) {
+				gameObject.SetActive (active);
+				if (label != null)
+						label.SetActive (active); // occasional error when this was null; checking instead of debugging :/
+	}
 	
 	void Update () {
 		if (isThisPlayer) {
-			// note - raycast needs a surface to hit against 	
+			// note - raycast needs a s		urface to hit against 	
 			RaycastHit hit;
 			if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit)) {
 				OnTouchMove(hit);
