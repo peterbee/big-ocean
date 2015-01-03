@@ -43,7 +43,7 @@ public class OtherPlayers : MonoBehaviour {
 				PlayerClass playerScript = (PlayerClass) player.GetComponent ("PlayerClass");
 
 				if (playerScript.updatedAt == null || playerScript.updatedAt == playerData.UpdatedAt) {
-					playerScript.SetActive (true); // should be false; set to true for testing with lots of whales
+					playerScript.SetActive (false); // should be false; set to true for testing with lots of whales
 				} else {
 					playerScript.SetActive (true);
 				}
