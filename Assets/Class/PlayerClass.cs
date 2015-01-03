@@ -24,6 +24,9 @@ public class PlayerClass : MonoBehaviour {
 		label = (GameObject) Instantiate(labelPrefab);
 		label.transform.SetParent (canvas.transform);
 		label.SetActive (false);
+		((UnityEngine.UI.Button) label.GetComponent("Button")).onClick.AddListener (() => {
+			((PlayerClass) GameObject.Find ("Player").GetComponent ("PlayerClass")).following = transform.gameObject;
+		});
 
 		if (isThisPlayer) {
 			LoadPlayer ();
@@ -32,7 +35,7 @@ public class PlayerClass : MonoBehaviour {
 
 	void LoadPlayer () {
 		string playerId = PlayerPrefs.GetString ("id");	
-		print ("Player Id " + playerId);
+		//print ("Player Id " + playerId);
 
 		parseObject = new ParseObject ("Character");
 
@@ -93,7 +96,7 @@ public class PlayerClass : MonoBehaviour {
 				else
 				{
 					// the object was saved successfully.
-					print ("Saved " + parseObject.ObjectId);
+					//print ("Saved " + parseObject.ObjectId);
 					playerId = parseObject.ObjectId;
 				}
 			});
@@ -108,10 +111,20 @@ public class PlayerClass : MonoBehaviour {
 	
 	void Update () {
 		if (isThisPlayer) {
-			// note - raycast needs a s		urface to hit against 	
+			// note - raycast needs a surface to hit against 	
 			RaycastHit hit;
 			if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit)) {
-				OnTouchMove(hit);
+				if(Input.GetMouseButtonDown(0)) {
+					// Clicked on something
+					if (hit.collider.gameObject.transform.root.tag == "Followable") {
+						following = hit.collider.gameObject;
+					} else {
+						following = null;
+					}
+				} else {
+					// No click so we just follow the mouse
+					Enqueue(hit);
+				}
 			}
 
 			SavePlayer ();
@@ -178,10 +191,6 @@ public class PlayerClass : MonoBehaviour {
 			rigidbody.drag = 0;
 			FreeFall ();
 		}
-	}
-	
-	void OnTouchMove (RaycastHit hit) {
-		Enqueue (hit);
 	}
 	
 	public void SetTarget (Vector3 position) {

@@ -23,7 +23,7 @@ public class OtherPlayers : MonoBehaviour {
 		if (threadResult != null) {
 			foreach (ParseObject playerData in threadResult)
 			{
-				print ("Player " + playerData.ObjectId);
+				//print ("Player " + playerData.ObjectId);
 				
 				if (playerData.ObjectId == thisPlayer.playerId) {
 					continue;
@@ -31,7 +31,7 @@ public class OtherPlayers : MonoBehaviour {
 
 				GameObject player;
 				if (players.TryGetValue (playerData.ObjectId, out player)) {
-					print("Player found " + player);
+					//print("Player found " + player);
 				} else {
 					player = (GameObject) Instantiate(playerPrefab);
 					player.SetActive (false); // start inactive
@@ -43,7 +43,7 @@ public class OtherPlayers : MonoBehaviour {
 				PlayerClass playerScript = (PlayerClass) player.GetComponent ("PlayerClass");
 
 				if (playerScript.updatedAt == null || playerScript.updatedAt == playerData.UpdatedAt) {
-					playerScript.SetActive (false);
+					playerScript.SetActive (true); // should be false; set to true for testing with lots of whales
 				} else {
 					playerScript.SetActive (true);
 				}

@@ -14,7 +14,7 @@ GameObject:
   - 54: {fileID: 5403236}
   m_Layer: 0
   m_Name: Whale
-  m_TagString: Untagged
+  m_TagString: Followable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -88,6 +88,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 403192}
   - 111: {fileID: 11103236}
+  - 136: {fileID: 13619866}
   m_Layer: 0
   m_Name: humpback_whale_model23
   m_TagString: Untagged
@@ -435,7 +436,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 103182}
   m_LocalRotation: {x: 0, y: .707106829, z: 0, w: .707106709}
-  m_LocalPosition: {x: 0, y: -5, z: 2.79999995}
+  m_LocalPosition: {x: 16.5, y: -12.3000002, z: 2.79999995}
   m_LocalScale: {x: .800000012, y: .800000012, z: .800000012}
   m_Children:
   - {fileID: 403236}
@@ -862,6 +863,19 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 2
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!136 &13619866
+CapsuleCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 103192}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 0
+  m_Radius: .300000012
+  m_Height: 3.5
+  m_Direction: 2
+  m_Center: {x: 0, y: 0, z: -.300000012}
 --- !u!137 &13703236
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 1
