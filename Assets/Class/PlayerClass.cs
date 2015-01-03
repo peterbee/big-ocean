@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using Parse;
 
@@ -18,9 +19,11 @@ public class PlayerClass : MonoBehaviour {
 	public GameObject following;
 	public string playerId;
 	public System.DateTime? updatedAt;
+	public GameObject nameInput;
 
 	void Start () {
 		canvas = GameObject.Find ("Canvas");
+
 		label = (GameObject) Instantiate(labelPrefab);
 		label.transform.SetParent (canvas.transform);
 		label.SetActive (false);
@@ -65,6 +68,12 @@ public class PlayerClass : MonoBehaviour {
 		if (parseObject != null && Time.time > nextSave) {
 			nextSave += 5f;
 
+			string playerName = nameInput.GetComponent<InputField>().text;
+			if (playerName.Length < 1) {
+				return;
+			}
+
+			parseObject["name"] = playerName;
 			parseObject["position_x"] = transform.position.x;
 			parseObject["position_y"] = transform.position.y;
 			parseObject["position_z"] = transform.position.z;
@@ -104,9 +113,8 @@ public class PlayerClass : MonoBehaviour {
 	}
 
 	public void SetActive (bool active) {
-				gameObject.SetActive (active);
-				if (label != null)
-						label.SetActive (active); // occasional error when this was null; checking instead of debugging :/
+		gameObject.SetActive (active);
+		if (label != null) label.SetActive (active);
 	}
 	
 	void Update () {
@@ -143,10 +151,10 @@ public class PlayerClass : MonoBehaviour {
 		
 		if (Mathf.Abs(vPos.x / vPos.y) > 1 ) {
 			// x dimension has greater magnitude
-			label.SetActive (AffixToScreen (ref vPos.x, ref vPos.y));
+			label.SetActive (label.activeSelf && AffixToScreen (ref vPos.x, ref vPos.y));
 		} else {
 			// y dimension has greater magnitude
-			label.SetActive (AffixToScreen (ref vPos.y, ref vPos.x));
+			label.SetActive (label.activeSelf && AffixToScreen (ref vPos.y, ref vPos.x));
 		}
 		
 		// Shift back so 0,0 is bottom-left of viewport
@@ -193,6 +201,15 @@ public class PlayerClass : MonoBehaviour {
 		}
 	}
 	
+	public void SetName (string playerName) {
+		if (label != null)
+			if (playerName.Length > 0) {
+				label.GetComponentInChildren<Text> ().text = playerName;
+			} else {
+				label.SetActive (false);
+			}
+	}
+
 	public void SetTarget (Vector3 position) {
 		Destroy (target);
 		target = (GameObject)Instantiate (pathVertex);

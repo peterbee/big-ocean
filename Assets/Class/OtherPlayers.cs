@@ -34,7 +34,7 @@ public class OtherPlayers : MonoBehaviour {
 					//print("Player found " + player);
 				} else {
 					player = (GameObject) Instantiate(playerPrefab);
-					player.SetActive (false); // start inactive
+					player.SetActive (false); // start inactive in case player is obsolete
 					player.transform.position = new Vector3 (playerData.Get<float>("position_x"), playerData.Get<float>("position_y"), playerData.Get<float>("position_z"));
 					players.Add (playerData.ObjectId, player);
 					print ("Player created " + player);
@@ -48,6 +48,11 @@ public class OtherPlayers : MonoBehaviour {
 					playerScript.SetActive (true);
 				}
 				playerScript.updatedAt = playerData.UpdatedAt;
+
+				string playerName;
+				if (playerData.TryGetValue<string>("name", out playerName)) {
+					playerScript.SetName(playerName);
+				}
 
 				if (playerData.Get<float>("target_z") != 0) {
 					playerScript.SetTarget (
