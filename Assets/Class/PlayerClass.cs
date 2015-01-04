@@ -151,10 +151,10 @@ public class PlayerClass : MonoBehaviour {
 		
 		if (Mathf.Abs(vPos.x / vPos.y) > 1 ) {
 			// x dimension has greater magnitude
-			label.SetActive (label.activeSelf && AffixToScreen (ref vPos.x, ref vPos.y));
+			label.SetActive (AffixToScreen (ref vPos.x, ref vPos.y));
 		} else {
 			// y dimension has greater magnitude
-			label.SetActive (label.activeSelf && AffixToScreen (ref vPos.y, ref vPos.x));
+			label.SetActive (AffixToScreen (ref vPos.y, ref vPos.x));
 		}
 		
 		// Shift back so 0,0 is bottom-left of viewport
