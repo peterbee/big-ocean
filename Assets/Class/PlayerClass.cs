@@ -21,7 +21,7 @@ public class PlayerClass : MonoBehaviour {
 	public System.DateTime? updatedAt;
 	public GameObject nameInput;
 
-	void Start () {
+	void Awake () {
 		canvas = GameObject.Find ("Canvas");
 
 		label = (GameObject) Instantiate(labelPrefab);
@@ -114,7 +114,7 @@ public class PlayerClass : MonoBehaviour {
 
 	public void SetActive (bool active) {
 		gameObject.SetActive (active);
-		if (label != null) label.SetActive (active);
+		label.SetActive (active);
 	}
 	
 	void Update () {
@@ -202,12 +202,11 @@ public class PlayerClass : MonoBehaviour {
 	}
 	
 	public void SetName (string playerName) {
-		if (label != null)
-			if (playerName.Length > 0) {
-				label.GetComponentInChildren<Text> ().text = playerName;
-			} else {
-				label.SetActive (false);
-			}
+		if (label.activeSelf && playerName.Length > 0) {
+			label.GetComponentInChildren<Text> ().text = playerName;
+		} else {
+			label.SetActive (false);
+		}
 	}
 
 	public void SetTarget (Vector3 position) {
